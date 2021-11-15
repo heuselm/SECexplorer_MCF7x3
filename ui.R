@@ -23,8 +23,8 @@ for (i in list.files("data/")){
 annotations <- c("Protein.Group", "Genes", "Corum_complex_name", "Corum_complex_id")
 Protein.Group = unique(data_prot$Protein.Group)
 Genes = unique(data_prot$Genes)
-Corum_complex_name = unique(corum2017$complex_name)
-Corum_complex_id = unique(corum2017$complex_id)
+Corum_complex_name = unique(corum2017[, n_detected:=length(unique(protein_id %in% Protein.Group)), complex_name][n_detected>1]$complex_name)
+Corum_complex_id = unique(corum2017[, n_detected:=length(unique(protein_id %in% Protein.Group)), complex_name][n_detected>1]$complex_id)
 
 
 ## Define User Interface 

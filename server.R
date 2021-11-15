@@ -21,8 +21,9 @@ for (i in list.files("data/")){
 annotations <- c("Protein.Group", "Genes", "Corum_complex_name", "Corum_complex_id")
 Protein.Group = unique(data_prot$Protein.Group)
 Genes = unique(data_prot$Genes)
-Corum_complex_name = unique(corum2017$complex_name)
-Corum_complex_id = unique(corum2017$complex_id)
+Corum_complex_name = unique(corum2017[, n_detected:=length(unique(protein_id %in% Protein.Group)), complex_name][n_detected>1]$complex_name)
+Corum_complex_id = unique(corum2017[, n_detected:=length(unique(protein_id %in% Protein.Group)), complex_name][n_detected>1]$complex_id)
+n_frac = max(as.numeric(data_prot$fraction_number))
 
 # Define server fundtions
 shinyServer(function(input, output) {
@@ -42,11 +43,11 @@ shinyServer(function(input, output) {
   output$prot_chrom <- renderPlotly({
     
     # Subset data to target proteins matching the selection
-    if (input$fcolumn == "Corum_complex_name"){
-      target_proteins = corum2017[complex_name == input$fvalue, unique(protein_id)]
-    } else if (input$fcolumn == "Corum_complex_id") {
-      target_proteins = corum2017[complex_id == input$fvalue, unique(protein_id)]
-    } else if (input$fcolumn == "Genes"){
+    if (input$fcolumn %in% "Corum_complex_name"){
+      target_proteins = corum2017[complex_name %in% input$fvalue, unique(protein_id)]
+    } else if (input$fcolumn %in% "Corum_complex_id") {
+      target_proteins = corum2017[complex_id %in% input$fvalue, unique(protein_id)]
+    } else if (input$fcolumn %in% "Genes"){
       target_proteins = data_prot[, .(Protein.Group, Genes)][Genes %in% input$fvalue, unique(Protein.Group)]
     } else {
       target_proteins = input$fvalue
@@ -69,7 +70,7 @@ shinyServer(function(input, output) {
       prot_chrom <- prot_chrom + geom_line()
       
     } else {
-      lx.frc <- seq(10,(max(data_prot_s$fraction_number)-1),10)
+      lx.frc <- seq(10,n_frac-1,10)
       lx <- paste( lx.frc , round(calibration_functions$FractionToMW(lx.frc), 1) , sep = '\n' )
       
       prot_chrom <- prot_chrom + geom_line() +
@@ -87,11 +88,11 @@ shinyServer(function(input, output) {
   output$pep_chrom <- renderPlotly({
     
     # Subset data to target proteins matching the selection
-    if (input$fcolumn == "Corum_complex_name"){
-      target_proteins = corum2017[complex_name == input$fvalue, unique(protein_id)]
-    } else if (input$fcolumn == "Corum_complex_id") {
-      target_proteins = corum2017[complex_id == input$fvalue, unique(protein_id)]
-    } else if (input$fcolumn == "Genes"){
+    if (input$fcolumn %in% "Corum_complex_name"){
+      target_proteins = corum2017[complex_name %in% input$fvalue, unique(protein_id)]
+    } else if (input$fcolumn %in% "Corum_complex_id") {
+      target_proteins = corum2017[complex_id %in% input$fvalue, unique(protein_id)]
+    } else if (input$fcolumn %in% "Genes"){
       target_proteins = data_prot[, .(Protein.Group, Genes)][Genes %in% input$fvalue, unique(Protein.Group)]
     } else {
       target_proteins = input$fvalue
@@ -114,7 +115,7 @@ shinyServer(function(input, output) {
       pep_chrom <- pep_chrom + geom_line()
       
     } else {
-      lx.frc <- seq(10,(max(data_pep_s$fraction_number)-1),10)
+      lx.frc <- seq(10,n_frac-1,10)
       lx <- paste( lx.frc , round(calibration_functions$FractionToMW(lx.frc), 1) , sep = '\n' )
       
       pep_chrom <- pep_chrom + geom_line() +
@@ -131,16 +132,16 @@ shinyServer(function(input, output) {
   output$table <- DT::renderDataTable({
     # Collect indices of the proteins matching the selection 
     # Subset data to target proteins matching the selection
-    if (input$fcolumn == "Corum_complex_name"){
-      target_proteins = corum2017[complex_name == input$fvalue, unique(protein_id)]
-    } else if (input$fcolumn == "Corum_complex_id") {
-      target_proteins = corum2017[complex_id == input$fvalue, unique(protein_id)]
-    } else if (input$fcolumn == "Genes"){
+    if (input$fcolumn %in% "Corum_complex_name"){
+      target_proteins = corum2017[complex_name %in% input$fvalue, unique(protein_id)]
+    } else if (input$fcolumn %in% "Corum_complex_id") {
+      target_proteins = corum2017[complex_id %in% input$fvalue, unique(protein_id)]
+    } else if (input$fcolumn %in% "Genes"){
       target_proteins = data_prot[, .(Protein.Group, Genes)][Genes %in% input$fvalue, unique(Protein.Group)]
     } else {
       target_proteins = input$fvalue
     }
-    protein_annotation[, Sequence:= NULL][Entry %in% target_proteins]
+    protein_annotation[Entry %in% target_proteins]
   },
     options = list(
   autoWidth = TRUE))
